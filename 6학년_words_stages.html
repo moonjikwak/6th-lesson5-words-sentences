@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>6학년 단어 단계 게임</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap');
+  :root{
+    --bg:#eef1ff; --card:#fff; --ink:#27274f; --muted:#7878a8;
+    --accent:#6d63f0; --accent-d:#4f46d6; --soft:#e3e2ff; --softer:#f2f2ff; --line:#cfd0fb;
+    --warn:#ff7a59; --gold:#f5b945;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{font-family:'Nunito',sans-serif;color:var(--ink);min-height:100vh;padding:18px 14px 40px;
+    background:radial-gradient(circle at 12% 12%,#d6dcff 0,transparent 42%),
+               radial-gradient(circle at 88% 88%,#e6e9ff 0,transparent 42%),var(--bg);}
+  .wrap{width:100%;max-width:480px;margin:0 auto;}
+  .screen{display:none;} .screen.active{display:block;animation:fade .35s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+  .growth{display:flex;align-items:center;gap:10px;background:#fff;border:2px solid var(--line);
+    border-radius:18px;padding:8px 12px;margin-bottom:14px;box-shadow:0 4px 0 #dcdefa;}
+  .growth .crea{width:46px;height:38px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+  .growth .crea svg{width:100%;height:100%;}
+  .growth .ginfo{flex:1;}
+  .growth .gtitle{font-family:'Fredoka',sans-serif;font-weight:700;font-size:14px;color:var(--accent-d);}
+  .growth .gbar{height:9px;background:var(--soft);border-radius:6px;margin-top:5px;overflow:hidden;}
+  .growth .gfill{height:100%;background:var(--accent);width:0;transition:width .5s ease;}
+
+  .card{background:var(--card);border:3px solid var(--line);border-radius:26px;padding:22px 20px;
+    box-shadow:0 8px 0 #d8dafa;}
+  h1{font-family:'Fredoka',sans-serif;font-size:30px;font-weight:700;color:#3d35b8;text-align:center;line-height:1.15;}
+  .sub{text-align:center;font-weight:800;color:var(--muted);margin:6px 0 18px;font-size:14px;}
+  .stage-badge{display:inline-block;font-family:'Fredoka',sans-serif;font-weight:600;font-size:13px;
+    background:var(--soft);color:var(--accent-d);border-radius:999px;padding:5px 14px;margin-bottom:14px;}
+  .prog{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+  .prog .track{flex:1;height:10px;background:var(--soft);border-radius:6px;overflow:hidden;}
+  .prog .fill{height:100%;background:var(--accent);width:0;transition:width .3s ease;}
+  .prog .lbl{font-weight:800;font-size:13px;color:var(--muted);white-space:nowrap;}
+
+  .btn{display:block;width:100%;font-family:'Fredoka',sans-serif;font-size:19px;font-weight:600;
+    color:#fff;background:var(--accent);border:none;border-bottom:5px solid var(--accent-d);
+    border-radius:18px;padding:15px;cursor:pointer;transition:transform .08s;}
+  .btn:active{transform:translateY(3px);border-bottom-width:2px;}
+  .btn.secondary{background:#fff;color:var(--accent-d);border:2px solid var(--line);border-bottom:4px solid var(--line);font-size:16px;}
+  .btn+.btn,.btn+.secondary,.secondary+.btn{margin-top:10px;}
+
+  .meaning{text-align:center;font-family:'Fredoka',sans-serif;font-size:30px;font-weight:700;color:#3d35b8;margin:6px 0 4px;}
+  .listen{display:inline-flex;align-items:center;gap:6px;background:var(--softer);border:2px solid var(--line);
+    color:var(--accent-d);border-radius:14px;padding:8px 16px;font-weight:800;font-size:15px;cursor:pointer;margin:6px auto 16px;}
+  .center{text-align:center;}
+
+  .choices{display:grid;gap:10px;}
+  .choice{font-family:'Fredoka',sans-serif;font-size:20px;font-weight:600;background:#fff;color:var(--ink);
+    border:3px solid var(--line);border-bottom:5px solid var(--line);border-radius:16px;padding:14px;cursor:pointer;transition:transform .08s;}
+  .choice:active{transform:translateY(2px);}
+  .choice.correct{background:#d8f7e4;border-color:#41c87e;color:#1f7a47;}
+  .choice.wrong{background:#ffe1da;border-color:var(--warn);color:#c0432a;}
+
+  .wordrow{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:14px 0 18px;}
+  .cell{width:40px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+    font-family:'Fredoka',sans-serif;font-size:24px;font-weight:700;}
+  .cell.fixed{background:var(--soft);color:var(--accent-d);}
+  .cell.blank{background:#fff;border:3px dashed var(--line);color:var(--ink);cursor:pointer;}
+  .cell.blank.has{border-style:solid;border-color:var(--accent);background:var(--softer);}
+  .tiles{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:6px;}
+  .tile{width:46px;height:46px;border-radius:12px;font-family:'Fredoka',sans-serif;font-size:22px;font-weight:700;
+    background:var(--accent);color:#fff;border:none;border-bottom:4px solid var(--accent-d);cursor:pointer;transition:transform .08s;}
+  .tile:active{transform:translateY(2px);}
+  .tile.used{background:#cfe8e1;color:#9fc5bc;border-bottom-color:#bfe0d7;pointer-events:none;}
+
+  .ws-grid{display:grid;gap:3px;justify-content:center;margin:8px 0 12px;}
+  .ws-cell{width:30px;height:30px;border-radius:7px;background:var(--softer);border:1px solid var(--line);
+    font-family:'Fredoka',sans-serif;font-weight:700;font-size:15px;color:var(--ink);display:flex;align-items:center;
+    justify-content:center;cursor:pointer;user-select:none;}
+  .ws-cell.sel{background:var(--gold);color:#fff;}
+  .ws-cell.found{background:#41c87e;color:#fff;border-color:#2f9e60;}
+  .ws-words{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;}
+  .ws-word{font-weight:800;font-size:13px;background:#fff;border:2px solid var(--line);border-radius:999px;padding:4px 11px;color:var(--ink);}
+  .ws-word.done{background:#d8f7e4;border-color:#41c87e;color:#1f7a47;text-decoration:line-through;}
+
+  .feedback{text-align:center;font-family:'Fredoka',sans-serif;font-weight:600;font-size:17px;min-height:24px;margin-top:8px;}
+  .shake{animation:shake .4s;} @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-7px);}75%{transform:translateX(7px);}}
+
+  .end-crea{width:140px;height:120px;margin:0 auto 6px;}
+  .end-crea svg{width:100%;height:100%;}
+  .end-title{font-family:'Fredoka',sans-serif;font-size:26px;font-weight:700;color:#3d35b8;text-align:center;}
+  .scoreline{background:var(--softer);border:2px solid var(--line);border-radius:14px;padding:12px;margin:14px 0;
+    font-weight:800;color:var(--ink);font-size:15px;line-height:1.8;text-align:center;}
+  .nick{width:100%;border:3px solid var(--line);border-radius:14px;padding:12px;font-family:'Nunito';font-weight:800;
+    font-size:17px;text-align:center;margin-bottom:10px;color:var(--ink);}
+  .nick:focus{outline:none;border-color:var(--accent);}
+  .note{text-align:center;font-size:13px;font-weight:700;color:var(--muted);margin-top:12px;line-height:1.6;}
+  .copybox{display:none;}
+  .copybox.show{display:block;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- START -->
+  <div class="screen active" id="s-start">
+    <div class="card center">
+      <h1>6학년<br>단어 단계 게임</h1>
+      <div class="sub">한 단계씩 차근차근 도전해 봐요!</div>
+      <div style="font-size:58px;margin:4px 0 2px;">📚✨</div>
+      <div style="text-align:left;background:var(--softer);border:2px solid var(--line);border-radius:14px;padding:14px;margin:6px 0 16px;font-weight:700;font-size:14px;line-height:1.9;color:var(--ink);">
+        <b style="color:var(--accent-d)">1단계</b> 뜻 보고 알맞은 영어 단어 고르기<br>
+        <b style="color:var(--accent-d)">2단계</b> 빠진 알파벳 넣어 단어 완성하기<br>
+        <b style="color:var(--accent-d)">3단계</b> 단어 찾기 퍼즐
+      </div>
+      <button class="btn" onclick="startGame()">▶ 시작하기</button>
+    </div>
+  </div>
+
+  <!-- STAGE 1: quiz -->
+  <div class="screen" id="s-stage1">
+    <div class="card">
+      <div class="center"><span class="stage-badge">1단계 · 뜻 보고 단어 고르기</span></div>
+      <div class="prog"><div class="track"><div class="fill" id="p1"></div></div><span class="lbl" id="l1">1 / 11</span></div>
+      <div class="meaning" id="q1meaning">뜻</div>
+      <div class="center"><button class="listen" onclick="speakWord(stage1word())">🔊 발음 듣기</button></div>
+      <div class="choices" id="q1choices"></div>
+      <div class="feedback" id="q1fb"></div>
+    </div>
+  </div>
+
+  <!-- STAGE 2: complete -->
+  <div class="screen" id="s-stage2">
+    <div class="card">
+      <div class="center"><span class="stage-badge">2단계 · 빠진 알파벳 채우기</span></div>
+      <div class="prog"><div class="track"><div class="fill" id="p2"></div></div><span class="lbl" id="l2">1 / 11</span></div>
+      <div class="meaning" id="q2meaning">뜻</div>
+      <div class="center"><button class="listen" onclick="speakWord(stage2word())">🔊 발음 듣기</button></div>
+      <div class="wordrow" id="q2word"></div>
+      <div class="tiles" id="q2tiles"></div>
+      <div class="feedback" id="q2fb"></div>
+    </div>
+  </div>
+
+  <!-- STAGE 3: word search -->
+  <div class="screen" id="s-stage3">
+    <div class="card">
+      <div class="center"><span class="stage-badge">3단계 · 단어 찾기 퍼즐</span></div>
+      <p class="note" style="margin:0 0 8px;">① 첫 글자를 탭 → ② 마지막 글자를 탭 (가로·세로)</p>
+      <div class="prog"><div class="track"><div class="fill" id="p3"></div></div><span class="lbl" id="l3">0 / 11</span></div>
+      <div class="ws-grid" id="wsGrid"></div>
+      <div class="ws-words" id="wsWords"></div>
+      <div class="feedback" id="q3fb"></div>
+    </div>
+  </div>
+
+  <!-- END -->
+  <div class="screen" id="s-end">
+    <div class="card center">
+      <div style="font-size:64px;margin:6px 0;">🎉</div>
+      <div class="end-title" id="endTitle">참 잘했어요!</div>
+      <div class="scoreline" id="endScore"></div>
+      <button class="btn secondary" onclick="location.reload()">🔁 다시 하기</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ===== 여기만 고치면 새 게임이 됩니다 ===== */
+const WORDS = [
+  { en:"broke",    ko:"부수었다" },
+  { en:"built",    ko:"지었다" },
+  { en:"drew",     ko:"그렸다" },
+  { en:"made",     ko:"만들었다" },
+  { en:"painted",  ko:"색칠했다" },
+  { en:"wrote",    ko:"썼다" },
+  { en:"airplane", ko:"비행기" },
+  { en:"hero",     ko:"영웅" },
+  { en:"letter",   ko:"편지·글자" },
+  { en:"sand",     ko:"모래" },
+  { en:"save",     ko:"구하다" },
+];
+const SETTINGS = { gameName:"6학년 단어단계게임", gridSize:12 };
+/* ========================================= */
+
+/* SVG (애벌레→나비) */
+const SVG = {
+  egg:`<svg viewBox="0 0 80 80"><ellipse cx="40" cy="46" rx="22" ry="28" fill="#fff7e8" stroke="#e7c486" stroke-width="2.5"/><ellipse cx="32" cy="36" rx="6" ry="9" fill="#fff" opacity=".7"/><circle cx="49" cy="50" r="3.2" fill="#f1d59b"/><circle cx="35" cy="58" r="2.6" fill="#f1d59b"/><circle cx="46" cy="40" r="2.2" fill="#f1d59b"/></svg>`,
+  caterpillar:`<svg viewBox="0 0 110 70"><circle cx="22" cy="46" r="13" fill="#8fd14f"/><circle cx="39" cy="43" r="13" fill="#7cc63f"/><circle cx="56" cy="45" r="13" fill="#8fd14f"/><circle cx="78" cy="40" r="16" fill="#6db933"/><circle cx="75" cy="38" r="3.6" fill="#2c3e1f"/><circle cx="86" cy="38" r="3.6" fill="#2c3e1f"/><path d="M73 47 Q80 53 87 47" stroke="#2c3e1f" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`,
+  chrysalis:`<svg viewBox="0 0 60 84"><line x1="30" y1="2" x2="30" y2="16" stroke="#9a7b4f" stroke-width="2.5"/><path d="M30 16 C11 23 14 62 30 75 C46 62 49 23 30 16 Z" fill="#5bbf4a"/><path d="M17 36 Q30 41 43 36" stroke="#e7c34a" stroke-width="2.6" fill="none"/><circle cx="24" cy="46" r="2.1" fill="#ffe08a"/><circle cx="36" cy="50" r="2.1" fill="#ffe08a"/></svg>`,
+  butterfly:`<svg viewBox="0 0 90 80"><ellipse cx="28" cy="30" rx="20" ry="16" fill="#ff8fab"/><ellipse cx="62" cy="30" rx="20" ry="16" fill="#ff8fab"/><ellipse cx="31" cy="55" rx="15" ry="14" fill="#ffc2d4"/><ellipse cx="59" cy="55" rx="15" ry="14" fill="#ffc2d4"/><ellipse cx="45" cy="42" rx="4.5" ry="20" fill="#5a3d2b"/><circle cx="45" cy="22" r="5" fill="#5a3d2b"/><path d="M45 19 Q40 8 34 6" stroke="#5a3d2b" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M45 19 Q50 8 56 6" stroke="#5a3d2b" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`,
+};
+const CREA = [
+  {svg:SVG.egg, title:"알에서 시작!"},
+  {svg:SVG.caterpillar, title:"애벌레가 됐어요!"},
+  {svg:SVG.chrysalis, title:"번데기가 됐어요!"},
+  {svg:SVG.butterfly, title:"나비가 됐어요! 🦋"},
+];
+
+function $(id){return document.getElementById(id);}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function speak(t){try{if(!("speechSynthesis"in window))return;window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="en-US";u.rate=.9;window.speechSynthesis.speak(u);}catch(e){}}
+function speakWord(w){if(w)speak(w);}
+
+/* 완주 축하 효과음 (Web Audio · 외부 파일 없음) */
+let audioCtx=null;
+function ensureAudio(){try{if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==="suspended")audioCtx.resume();}catch(e){}}
+function tone(f,start,dur,type,vol){const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0.0001,start);g.gain.exponentialRampToValueAtTime(vol,start+0.03);g.gain.exponentialRampToValueAtTime(0.0001,start+dur);o.connect(g);g.connect(audioCtx.destination);o.start(start);o.stop(start+dur+0.05);}
+function noiseBurst(start,dur,freq,vol){const ctx=audioCtx,sr=ctx.sampleRate,len=Math.max(1,Math.floor(sr*dur));const buf=ctx.createBuffer(1,len,sr),d=buf.getChannelData(0);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);const src=ctx.createBufferSource();src.buffer=buf;const bp=ctx.createBiquadFilter();bp.type="bandpass";bp.frequency.value=freq;bp.Q.value=0.9;const g=ctx.createGain();g.gain.setValueAtTime(vol,start);g.gain.exponentialRampToValueAtTime(0.0001,start+dur);src.connect(bp);bp.connect(g);g.connect(ctx.destination);src.start(start);src.stop(start+dur+0.02);}
+function applause(start,dur){const n=Math.floor(dur*24);for(let i=0;i<n;i++){const t=start+Math.random()*dur;const f=1500+Math.random()*1900;noiseBurst(t,0.05+Math.random()*0.04,f,0.28+Math.random()*0.22);}}
+function celebrate(){ensureAudio();if(!audioCtx)return;const t=audioCtx.currentTime;applause(t+0.02,1.7);[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,t+i*0.14,0.4,"triangle",0.17));tone(1568,t+0.6,0.5,"sine",0.12);}
+
+function showScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));$(id).classList.add("active");window.scrollTo(0,0);}
+
+/* ---------- START ---------- */
+function startGame(){
+  ensureAudio();
+  initStage1();
+  showScreen("s-stage1");
+}
+
+/* ---------- STAGE 1: quiz ---------- */
+let s1order=[],s1idx=0,s1correct=0;
+function stage1word(){return s1order[s1idx]?s1order[s1idx].en:"";}
+function initStage1(){s1order=shuffle(WORDS);s1idx=0;s1correct=0;renderS1();}
+function renderS1(){
+  const q=s1order[s1idx];
+  $("q1meaning").textContent=q.ko;
+  $("p1").style.width=((s1idx)/s1order.length*100)+"%";
+  $("l1").textContent=(s1idx+1)+" / "+s1order.length;
+  $("q1fb").textContent="";
+  const others=shuffle(WORDS.filter(w=>w.en!==q.en)).slice(0,3);
+  const opts=shuffle([q,...others]);
+  const box=$("q1choices");box.innerHTML="";
+  opts.forEach(o=>{
+    const b=document.createElement("button");b.className="choice";b.textContent=o.en;
+    b.onclick=()=>pickS1(b,o,q);box.appendChild(b);
+  });
+  speak(q.en);
+}
+function pickS1(btn,opt,q){
+  if(btn.dataset.locked)return;
+  document.querySelectorAll("#q1choices .choice").forEach(c=>c.dataset.locked="1");
+  if(opt.en===q.en){btn.classList.add("correct");s1correct++;$("q1fb").textContent="잘했어요! 👍";}
+  else{btn.classList.add("wrong");$("q1fb").textContent="아쉬워요. 정답: "+q.en;
+    document.querySelectorAll("#q1choices .choice").forEach(c=>{if(c.textContent===q.en)c.classList.add("correct");});}
+  setTimeout(()=>{
+    s1idx++;
+    if(s1idx>=s1order.length){initStage2();showScreen("s-stage2");}
+    else renderS1();
+  },1100);
+}
+
+/* ---------- STAGE 2: complete word ---------- */
+let s2order=[],s2idx=0,s2correct=0,s2state=null;
+function stage2word(){return s2order[s2idx]?s2order[s2idx].en:"";}
+function initStage2(){s2order=shuffle(WORDS);s2idx=0;s2correct=0;renderS2();}
+function blankPositions(len){
+  const n=Math.max(1,Math.round(len*0.4));
+  const cand=[];for(let i=1;i<len;i++)cand.push(i); // never blank first letter
+  return shuffle(cand).slice(0,n).sort((a,b)=>a-b);
+}
+function renderS2(){
+  const q=s2order[s2idx];const word=q.en.toUpperCase();
+  const blanks=blankPositions(word.length);
+  s2state={word,blanks,filled:{},tiles:shuffle(blanks.map(i=>word[i]))};
+  $("q2meaning").textContent=q.ko;
+  $("p2").style.width=((s2idx)/s2order.length*100)+"%";
+  $("l2").textContent=(s2idx+1)+" / "+s2order.length;
+  $("q2fb").textContent="";
+  drawS2();speak(q.en);
+}
+function drawS2(){
+  const {word,blanks,filled}=s2state;
+  const row=$("q2word");row.innerHTML="";
+  for(let i=0;i<word.length;i++){
+    const c=document.createElement("div");c.className="cell";
+    if(blanks.includes(i)){
+      c.classList.add("blank");
+      if(filled[i]){c.classList.add("has");c.textContent=filled[i];c.onclick=()=>removeS2(i);}
+      else c.textContent="";
+    }else{c.classList.add("fixed");c.textContent=word[i];}
+    row.appendChild(c);
+  }
+  const tbox=$("q2tiles");tbox.innerHTML="";
+  s2state.tiles.forEach((ch,ti)=>{
+    const b=document.createElement("button");b.className="tile"+(s2state.usedTiles&&s2state.usedTiles[ti]?" used":"");
+    b.textContent=ch;b.onclick=()=>placeS2(ti,ch);tbox.appendChild(b);
+  });
+}
+function nextBlank(){const {blanks,filled}=s2state;return blanks.find(i=>!filled[i]);}
+function placeS2(ti,ch){
+  if(!s2state.usedTiles)s2state.usedTiles={};
+  if(s2state.usedTiles[ti])return;
+  const b=nextBlank();if(b==null)return;
+  s2state.filled[b]=ch;s2state.usedTiles[ti]=true;
+  drawS2();checkS2();
+}
+function removeS2(pos){
+  const ch=s2state.filled[pos];delete s2state.filled[pos];
+  // free one used tile with same char
+  for(const ti in s2state.usedTiles){if(s2state.tiles[ti]===ch&&s2state.usedTiles[ti]){delete s2state.usedTiles[ti];break;}}
+  drawS2();
+}
+function checkS2(){
+  const {word,blanks,filled}=s2state;
+  if(blanks.some(i=>!filled[i]))return;
+  let attempt="";for(let i=0;i<word.length;i++)attempt+=blanks.includes(i)?filled[i]:word[i];
+  if(attempt===word){
+    s2correct++;$("q2fb").textContent="완성! 🎉";
+    setTimeout(()=>{s2idx++;if(s2idx>=s2order.length){initStage3();showScreen("s-stage3");}else renderS2();},900);
+  }else{
+    $("q2fb").textContent="다시 해볼까요?";$("q2word").classList.add("shake");
+    setTimeout(()=>{$("q2word").classList.remove("shake");s2state.filled={};s2state.usedTiles={};drawS2();$("q2fb").textContent="";},700);
+  }
+}
+
+/* ---------- STAGE 3: word search ---------- */
+let wsGrid=[],wsPlaced=[],wsFound=0,wsStart=null,GRID=12;
+function initStage3(){GRID=SETTINGS.gridSize;buildWS();wsFound=0;wsStart=null;renderWS();}
+function canPlace(g,word,r,c,dr,dc){
+  for(let i=0;i<word.length;i++){const nr=r+dr*i,nc=c+dc*i;
+    if(nr<0||nr>=GRID||nc<0||nc>=GRID)return false;
+    if(g[nr][nc]&&g[nr][nc]!==word[i])return false;}
+  return true;
+}
+function buildWS(){
+  const DIRS=[[0,1],[1,0]]; // 가로, 세로
+  const words=WORDS.map(w=>w.en.toUpperCase());
+  let best=null,bestN=-1;
+  for(let attempt=0;attempt<60;attempt++){
+    const g=Array.from({length:GRID},()=>Array(GRID).fill(""));
+    const placed=[];
+    const sorted=[...words].sort((a,b)=>b.length-a.length);
+    for(const word of sorted){
+      let ok=false;const dirs=shuffle(DIRS);
+      outer:for(const [dr,dc] of dirs){
+        for(let t=0;t<120;t++){
+          const r=Math.floor(Math.random()*GRID),c=Math.floor(Math.random()*GRID);
+          if(canPlace(g,word,r,c,dr,dc)){
+            const cells=[];for(let i=0;i<word.length;i++){g[r+dr*i][c+dc*i]=word[i];cells.push((r+dr*i)+","+(c+dc*i));}
+            placed.push({word,cells,found:false});ok=true;break outer;
+          }
+        }
+      }
+    }
+    if(placed.length>bestN){bestN=placed.length;best={g:g.map(r=>[...r]),placed};}
+    if(placed.length===words.length)break;
+  }
+  const A="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  for(let r=0;r<GRID;r++)for(let c=0;c<GRID;c++)if(!best.g[r][c])best.g[r][c]=A[Math.floor(Math.random()*26)];
+  wsGrid=best.g;wsPlaced=best.placed;
+}
+function renderWS(){
+  const grid=$("wsGrid");grid.style.gridTemplateColumns=`repeat(${GRID},1fr)`;grid.innerHTML="";
+  for(let r=0;r<GRID;r++)for(let c=0;c<GRID;c++){
+    const d=document.createElement("div");d.className="ws-cell";d.textContent=wsGrid[r][c];
+    d.dataset.rc=r+","+c;d.onclick=()=>tapWS(r,c,d);grid.appendChild(d);
+  }
+  const wl=$("wsWords");wl.innerHTML="";
+  wsPlaced.forEach((p,i)=>{const s=document.createElement("span");s.className="ws-word"+(p.found?" done":"");s.id="ww"+i;s.textContent=p.word;wl.appendChild(s);});
+  $("l3").textContent=wsFound+" / "+wsPlaced.length;
+  $("p3").style.width=(wsFound/wsPlaced.length*100)+"%";
+}
+function cellEl(r,c){return document.querySelector('.ws-cell[data-rc="'+r+','+c+'"]');}
+function clearSel(){document.querySelectorAll(".ws-cell.sel").forEach(e=>e.classList.remove("sel"));}
+function tapWS(r,c,d){
+  if(d.classList.contains("found"))return;
+  if(!wsStart){wsStart={r,c};d.classList.add("sel");return;}
+  // second tap -> build straight line
+  const s=wsStart;wsStart=null;
+  let cells=[];
+  if(s.r===r){const a=Math.min(s.c,c),b=Math.max(s.c,c);for(let cc=a;cc<=b;cc++)cells.push(s.r+","+cc);}
+  else if(s.c===c){const a=Math.min(s.r,r),b=Math.max(s.r,r);for(let rr=a;rr<=b;rr++)cells.push(rr+","+c);}
+  else{clearSel();$("q3fb").textContent="가로 또는 세로로 골라요";setTimeout(()=>$("q3fb").textContent="",900);return;}
+  const setA=cells.slice().sort().join("|");
+  let hit=null;
+  wsPlaced.forEach((p,i)=>{if(!p.found && p.cells.slice().sort().join("|")===setA)hit=i;});
+  clearSel();
+  if(hit!=null){
+    wsPlaced[hit].found=true;wsFound++;
+    wsPlaced[hit].cells.forEach(rc=>{const e=document.querySelector('.ws-cell[data-rc="'+rc+'"]');if(e)e.classList.add("found");});
+    $("ww"+hit).classList.add("done");
+    $("l3").textContent=wsFound+" / "+wsPlaced.length;
+    $("p3").style.width=(wsFound/wsPlaced.length*100)+"%";
+    $("q3fb").textContent="찾았다! 🎉";setTimeout(()=>$("q3fb").textContent="",800);
+    if(wsFound>=wsPlaced.length){setTimeout(showEnd,700);}
+  }else{$("q3fb").textContent="다시 찾아보세요";setTimeout(()=>$("q3fb").textContent="",900);}
+}
+
+/* ---------- END ---------- */
+function showEnd(){
+  celebrate();
+  setTimeout(()=>speak("Wow! Great job!"),1300);
+  const total=s1correct+s2correct+wsFound, max=WORDS.length*3;
+  const great=(s1correct>=Math.ceil(WORDS.length*0.8))&&(wsFound>=wsPlaced.length);
+  $("endTitle").textContent=great?"최고예요! 끝까지 멋지게 해냈어요 🎉":"참 잘했어요! 끝까지 해냈어요 👏";
+  $("endScore").innerHTML=`1단계 ${s1correct} / ${WORDS.length}<br>2단계 ${s2correct} / ${WORDS.length}<br>3단계 ${wsFound} / ${wsPlaced.length}<br><b style="color:var(--accent-d)">총 ${total} / ${max}</b>`;
+  showScreen("s-end");
+}
+</script>
+</body>
+</html>

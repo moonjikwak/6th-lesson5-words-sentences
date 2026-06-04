@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 4 영어 게임</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap');
+  :root {
+    --bg:#fff4e0; --card:#fff; --ink:#3a2e2a; --muted:#9a7a64;
+    --dict:#e5577f; --dict-d:#c43e66; --dict-soft:#fcdde6; --dict-line:#f6c6d4; --dict-sh:#f0b8c8;
+    --stg:#16b89e; --stg-d:#0d8d79; --stg-soft:#d2f5ec; --stg-line:#bfeee2; --stg-sh:#bfe6dc;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  body { font-family:'Nunito',sans-serif; color:var(--ink); min-height:100vh; padding:24px 16px 40px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:radial-gradient(circle at 15% 18%,#ffe1b3 0,transparent 45%),
+               radial-gradient(circle at 85% 82%,#c8f6e9 0,transparent 45%),var(--bg); }
+  .wrap { width:100%; max-width:460px; text-align:center; }
+  .crown { font-size:40px; animation:bob 2.4s ease-in-out infinite; }
+  @keyframes bob { 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-7px);} }
+  h1 { font-family:'Fredoka',sans-serif; font-size:34px; font-weight:700; line-height:1.15; margin:6px 0 4px; color:#5a3d2b; }
+  .sub { font-weight:800; font-size:15px; color:var(--muted); margin-bottom:24px; }
+
+  .cards { display:grid; gap:16px; }
+  .card { display:block; text-decoration:none; color:inherit; text-align:left;
+    background:var(--card); border:3px solid var(--line); border-radius:26px;
+    padding:22px 22px; box-shadow:0 8px 0 var(--sh); position:relative; overflow:hidden;
+    transition:transform .1s ease; opacity:0; transform:translateY(14px); animation:rise .5s ease forwards; }
+  .card:active { transform:translateY(4px); box-shadow:0 4px 0 var(--sh); }
+  .card.dict { --line:var(--dict-line); --sh:var(--dict-sh); }
+  .card.stg  { --line:var(--stg-line);  --sh:var(--stg-sh); }
+  .card:nth-child(1){ animation-delay:.05s; } .card:nth-child(2){ animation-delay:.18s; }
+  @keyframes rise { to { opacity:1; transform:translateY(0); } }
+  .row { display:flex; align-items:center; gap:16px; }
+  .emoji { width:64px; height:64px; flex-shrink:0; border-radius:20px; display:flex; align-items:center; justify-content:center; font-size:34px; }
+  .dict .emoji { background:var(--dict-soft); } .stg .emoji { background:var(--stg-soft); }
+  .ttl { font-family:'Fredoka',sans-serif; font-size:23px; font-weight:700; }
+  .dict .ttl { color:var(--dict-d); } .stg .ttl { color:var(--stg-d); }
+  .desc { font-size:14px; font-weight:700; color:var(--muted); margin-top:3px; line-height:1.45; }
+  .go { margin-top:16px; font-family:'Fredoka',sans-serif; font-size:18px; font-weight:700; color:#fff;
+    border-radius:16px; padding:13px; text-align:center; }
+  .dict .go { background:var(--dict); border-bottom:4px solid var(--dict-d); }
+  .stg .go  { background:var(--stg);  border-bottom:4px solid var(--stg-d); }
+
+  .foot { margin-top:24px; font-size:13px; font-weight:700; color:var(--muted); line-height:1.6; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="crown">🎈</div>
+    <h1>Lesson 4 영어 게임</h1>
+    <div class="sub">What time do you have dinner?</div>
+
+    <div class="cards">
+      <a class="card dict" href="dictation.html">
+        <div class="row">
+          <div class="emoji">✏️</div>
+          <div>
+            <div class="ttl">문장 받아쓰기</div>
+            <div class="desc">문장을 듣고 영어로 그대로 써 보기</div>
+          </div>
+        </div>
+        <div class="go">시작하기 ▶</div>
+      </a>
+
+      <a class="card stg" href="stages.html">
+        <div class="row">
+          <div class="emoji">🧩</div>
+          <div>
+            <div class="ttl">단어 3단계 게임</div>
+            <div class="desc">단어 고르기 → 단어 완성 → 단어 찾기</div>
+          </div>
+        </div>
+        <div class="go">시작하기 ▶</div>
+      </a>
+    </div>
+
+    <div class="foot">하고 싶은 게임을 골라 시작해 보세요!</div>
+  </div>
+</body>
+</html>
